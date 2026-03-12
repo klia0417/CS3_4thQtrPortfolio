@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Movie Rating</title>
-<style>
-    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-    .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
-    input, select { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button.delete-btn { background: #dc3545; margin-top: 10px; font-size: 12px; }
-    
-    .star { cursor: pointer; color: #ddd; font-size: 24px; }
-    .star.selected { color: gold; }
-    .gold-star { color: gold; }
-    
-    .movie-card { background: white; padding: 15px; border-radius: 4px; margin-top: 10px; width: 350px; border-left: 5px solid #007bff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-</style>
+    <title>Movie Rating - Graded Exercise 2</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; }
+        input, select { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        button#add-btn { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        button#add-btn:hover { background: #0056b3; }
+
+        .delete-btn { background: #efefef; color: #333; border: 1px solid #767676; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-size: 13px; }
+        .delete-btn:hover { background: #e5e5e5; }
+        
+        .star { cursor: pointer; color: #ddd; font-size: 24px; transition: color 0.2s; }
+        .star.selected { color: #ffcc00; }
+        .gold-star { color: #ffcc00; }
+        
+        .movie-card { background: white; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-top: 10px; width: 400px; display: flex; justify-content: space-between; align-items: center; }
+        .movie-info { font-size: 14px; color: #333; }
+    </style>
 </head>
 <body>
 
 <div class="form-container">
-    <h2>Add a Movie</h2>
-    <input type="text" id="title" placeholder="Title">
-    <input type="number" id="year" placeholder="Year">
+    <h3 style="text-align: center; margin-top: 0;">Add / Update a Movie Rating</h3>
+    <label>Title:</label>
+    <input type="text" id="title">
+    <label>Year:</label>
+    <input type="number" id="year">
+    <label>Genre:</label>
     <select id="genre">
         <option>Action</option>
         <option>Comedy</option>
         <option>Drama</option>
         <option>Sci-Fi</option>
     </select>
-    <p>Rating:</p>
+    <p style="margin-bottom: 5px;">Rating:</p>
     <div id="star-rating">
         <span class="star" data-value="1">★</span>
         <span class="star" data-value="2">★</span>
@@ -37,10 +44,10 @@
         <span class="star" data-value="4">★</span>
         <span class="star" data-value="5">★</span>
     </div>
-    <button id="add-btn" style="margin-top: 15px;">Add Movie</button>
+    <button id="add-btn">Add Movie</button>
 </div>
 
-<h3>Movie List</h3>
+<h3 style="margin-top: 30px;">Movie List</h3>
 <div id="movie-list"></div>
 
 <script>
@@ -64,38 +71,63 @@
         movies.forEach((m, index) => {
             const div = document.createElement('div');
             div.className = 'movie-card';
+            
+            const starsHtml = '★'.repeat(Math.round(m.rating));
+            
             div.innerHTML = `
-                ${m.title} (${m.year}) - ${m.genre}, Rating: <span class="gold-star">${'★'.repeat(m.rating)}</span>
-                <br><button class="delete-btn" onclick="deleteMovie(${index})">Delete</button>
+                <span class="movie-info">
+                    <strong>${m.title}</strong> (${m.year}) - ${m.genre}, Rating: 
+                    <span class="gold-star">${starsHtml}</span>
+                </span>
+                <button class="delete-btn" onclick="deleteMovie(${index})">Delete</button>
             `;
             listDiv.appendChild(div);
         });
     }
 
     function deleteMovie(index) {
-        const movies = JSON.parse(localStorage.getItem('movies') || '[]');
-        movies.splice(index, 1);
-        localStorage.setItem('movies', JSON.stringify(movies));
-        displayMovies();
+        if (confirm("Are you sure you want to delete?")) {
+            const movies = JSON.parse(localStorage.getItem('movies') || '[]');
+            movies.splice(index, 1);
+            localStorage.setItem('movies', JSON.stringify(movies));
+            displayMovies();
+        }
     }
 
     document.getElementById('add-btn').addEventListener('click', () => {
-        const title = document.getElementById('title').value;
-        const year = document.getElementById('year').value;
-        const genre = document.getElementById('genre').value;
+        const titleInput = document.getElementById('title');
+        const yearInput = document.getElementById('year');
+        const genreInput = document.getElementById('genre');
 
-        if (!title || !year || currentRating === 0) return alert("Fill all fields!");
+        const title = titleInput.value.trim();
+        const year = yearInput.value;
+        const genre = genreInput.value;
 
-        const movies = JSON.parse(localStorage.getItem('movies') || '[]');
-        movies.push({ title, year, genre, rating: currentRating.toString() });
+        if (!title || !year || currentRating === 0) {
+            alert("Please complete all fields!");
+            return;
+        }
+
+        let movies = JSON.parse(localStorage.getItem('movies') || '[]');
+        
+        const existingIdx = movies.findIndex(m => m.title.toLowerCase() === title.toLowerCase());
+
+        if (existingIdx !== -1) {
+            let oldRating = parseFloat(movies[existingIdx].rating);
+            movies[existingIdx].rating = (oldRating + currentRating) / 2;
+            movies[existingIdx].year = year;
+            movies[existingIdx].genre = genre;
+        } else {
+            movies.push({ title, year, genre, rating: currentRating });
+        }
+
         localStorage.setItem('movies', JSON.stringify(movies));
         
-        displayMovies();
-
-        document.getElementById('title').value = '';
-        document.getElementById('year').value = '';
+        titleInput.value = '';
+        yearInput.value = '';
         currentRating = 0;
         stars.forEach(s => s.classList.remove('selected'));
+        displayMovies();
     });
 
     displayMovies();
